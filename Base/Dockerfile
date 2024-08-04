@@ -14,6 +14,11 @@ RUN dnf install -y \
     zsh \
     tree \
     unzip \
+    pkgconf \
+    perl-FindBin \
+    perl-IPC-Cmd \
+    openssl-devel \
+    && dnf install -y @development-tools \
     && dnf clean all \
     && rm -rf /var/cache/yum;
 
