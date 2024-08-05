@@ -1,5 +1,7 @@
 FROM ubuntu:24.04
 
+ARG CONTAINER_TYPE="personal" # || "work"
+ARG SSH_TARGET="ed25519"
 ARG ARCH="amd64"
 ARG USERNAME="devuser"
 ARG GO_VERSION="1.22.5"
@@ -28,6 +30,15 @@ RUN useradd -ms /usr/bin/zsh ${USERNAME} \
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 USER ${USERNAME}
 WORKDIR /home/${USERNAME}
+# Setup SSH
+# Note: this is expecting a dir called `sshkeys` in the root of the build context.
+# Inside the `./ssh-keys` dir there should be two files the priv and pub keys. 
+# Name: ${CONTAINER_TYPE}_${SSH_TARGET} || personal_ed25519
+RUN mkdir -p /home/${USERNAME}/.ssh
+COPY --chown=dtoebe:dtoebe ./ssh-keys/* /home/${USERNAME}/.ssh/
+RUN chmod 600 /home/${USERNAME}/.ssh/${CONTAINER_TYPE}_${SSH_TARGET}{,.pub} \
+    && ssh-add /home/${USERNAME}/.ssh/${CONTAINER_TYPE}_${SSH_TARGET}
+
 # Setup ZSH
 RUN wget https://github.com/robbyrussell/oh-my-zsh/raw/master/tools/install.sh -O - | zsh || true \
     && sed -i 's/robbyrussell/avit/' /home/${USERNAME}/.zshrc
